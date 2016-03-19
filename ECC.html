@@ -1,0 +1,178 @@
+<html>
+<style>
+input.eqn {
+	width: 20px;
+}
+</style>
+<body>
+<h2>Find Points on Elliptic Curve</h2>
+<div id="equation">
+	y^2 = x^3 + <input class="eqn" id="a">x + <input class="eqn" id="b"> in Z<input class="eqn" id="z">
+</div>
+<button onclick="ECC()">Do it</button>
+</body>
+<script>
+	var Z,a,b,Na,Nb,G,Pa,Pb,Ka,Kb,M,C;
+	var Xp, Yp, Xq, Yq, Xr, Yr;
+	var S;	// slope
+
+	// y^2 = X^3 + 5x + 4	in Z11
+	a = 5;
+	b = 4;
+	Z = 11;
+	//ECC();
+	
+	function ECC()
+	{
+		a = parseInt(document.getElementById("a").value);
+		b = parseInt(document.getElementById("b").value);
+		Z = parseInt(document.getElementById("z").value);
+		if(4*Math.pow(a, 3) + 27*Math.pow(b,2) == 0)
+		{
+			console.log("a and b are not valid!");
+			return;
+		}
+		// Finding points on the curve
+		var pts = generatePtsOnCurve();
+		//Find two points by setting X values
+		Xp = pts[0][0];
+		Yp = calcYECC(Xp);
+		Xq = pts[1][0];
+		Yq = calcYECC(Xq);
+		
+		//Find point R
+		var R = add2DiffPts(Xp, Yp, Xq, Yq);
+		Xr = R[0];
+		Yr = -R[1];
+		
+		console.log(Xr + " " + Yr);
+		
+		calcPtAdditionTable(pts);
+		
+	}
+	function generatePtsOnCurve()
+	{
+		var possibleY = [];
+		var possibleX = [];
+		var pts = [];
+		for(var i = 0; i < Z; i++)
+		{
+			possibleY[i] = (Math.pow(i, 2)%Z);
+			console.log("when Y=" + i + " ==> " + possibleY[i] );
+		}
+		
+		for(var i = 0; i < Z; i++)
+		{
+			possibleX[i] = ((Math.pow(i, 3)+ a*i + b)%Z);
+			console.log("when X=" + i + " ==> " + possibleX[i] );
+		}
+		
+		for(var y = 0; y < Z; y++)
+		{
+			for(var x = 0; x < Z; x++)
+			{
+				if(possibleY[y] == possibleX[x])
+				{
+					document.write("Point (" + x + ", " + y + ")<br>");
+					pts[pts.length] = [x, y];
+				}
+			}
+		}
+		return pts;
+	}
+	function calcPtAdditionTable(pts)
+	{
+		var table = "";
+		table += "<table border='1'>";
+		table += "<tr>";
+		table += "<td>X</td>";
+		for(var i = 0; i < pts.length; i++)
+		{
+			table += "<td>" + pts[i] + "</td>";
+		}
+		table += "</tr>";
+		for(var i = 0; i < pts.length; i++)
+		{
+			table += "<tr>";
+			table += "<td>" + pts[i] + "</td>";
+			for(var j = 0; j < pts.length; j++)
+			{
+				if(i === j)
+				{
+					table += "<td>" + add2SamePts(pts[j][0], pts[j][1]) + "</td>";
+				}
+				else
+				{
+					table += "<td>" + add2DiffPts(pts[i][0], pts[i][1], pts[j][0], pts[j][1]) + "</td>";
+				}
+
+			}
+			table += "</tr>";
+		}
+		table += "</table>";
+
+		document.write(table);
+	}
+	function findInverse(n)
+	{
+		Z = 26;
+		// in respect to specified Z
+		var q, r1, r2, r, t1, t2, t, i;
+		// Init
+		r1 = Z;
+		r2 = n;
+		t1 = 0;
+		t2 = 1;
+		while(r2 !== 0)
+		{
+
+			q = ~~(r1/r2);
+			r = r1 - (q*r2);
+			t = t1 - q*t2;
+
+console.log(q + " " + r1 + " " + r2 + " " + r + " " + t1 + " " + t2 + " " + t );
+
+			r1 = r2;
+			r2 = r;
+			t1 = t2;
+			t2 = t;
+		}
+
+		i = t1;
+		if(i < 0)
+		{
+			i %= Z;
+			i += Z;
+		}
+		
+		console.log(i);
+		
+	}
+	function calcYECC(x)
+	{
+		var y;
+		y = Math.sqrt(Math.pow(x, 3) + a*x + b);
+		return y;
+	}
+	function CalcYLine(x)
+	{
+		// Equation of line going through Q,P,R
+		var Y = S*x + S*Xp + Yp;
+		return Y;
+	}
+	function add2SamePts(x, y)
+	{
+		var s = 3*Math.pow(x, 2) + a / (2*y);
+		var X = Math.pow(s, 2) - 2*x;
+		var Y = s * (x - X) - y;
+		return [X, Y];
+	}
+	function add2DiffPts(x1, y1, x2, y2)
+	{
+		var s = (y1 - y2) / (x1 - x2);
+		var X = Math.pow(s, 2) - x1 - x2;
+		var Y = s*(x1-x2) - y1;
+		return [X%Z, Y%Z];
+	}
+</script>
+</html>
