@@ -100,29 +100,35 @@ input.eqn {
 	function calcPtAdditionTable(pts)
 	{
 		var table = "";
-		table += "<table>";
+		table += "<table border='1'>";
 		table += "<tr>";
-		table += "<td>X</td>";
+		table += "<td></td>";
 		for(var i = 0; i < pts.length; i++)
 		{
-			table += "<td>(" + pts[i] + ")</td>";
+			table += "<td>(" + pts[i][0] + ", " + pts[i][1] + ")</td>";
 		}
 		table += "<td>Infinity</td>";
 		table += "</tr>";
 		for(var i = 0; i < pts.length; i++)
 		{
 			table += "<tr>";
-			table += "<td>(" + pts[i] + ")</td>";
+			table += "<td>(" + pts[i][0] + ", " + pts[i][1] + ")</td>";
 			for(var j = 0; j < pts.length; j++)
 			{
+				var result;
 				if(i === j)
 				{
-					table += "<td>(" + add2SamePts(pts[j][0], pts[j][1]) + ")</td>";
+					result = add2SamePts(pts[j][0], pts[j][1]);
 				}
 				else
 				{
-					table += "<td>(" + add2DiffPts(pts[i][0], pts[i][1], pts[j][0], pts[j][1]) + ")</td>";
+					result = add2DiffPts(pts[i][0], pts[i][1], pts[j][0], pts[j][1]);
 				}
+				if(result != Infinity)
+				{
+					result = "(" + result[0] + ", " + result[1] + ")";
+				}
+				table += "<td>" + result + "</td>";
 
 			}
 			table += "<td>(" + pts[i][0] + ", " + pts[i][1] + ")</td>"; 
@@ -237,14 +243,19 @@ input.eqn {
 	}
 	function add2DiffPts(x1, y1, x2, y2)
 	{
-		var sDivisor = (x1 - x2);
-		var s = (y1 - y2) / sDivisor;
+		var sDivisor = (x2 - x1);
+		var sDividend = (y2 - y1);
+		if(sDividend < 0)
+		{
+			sDividend = mod(sDividend, Z);
+		}
+		var s = sDividend / sDivisor;
 		if(s !== ~~s)
 		{
 			if(gcd(Z, mod(sDivisor, Z)) === 1)	// If the divisor has an inverse in Z
 			{
 				sDivisor = findInverse(sDivisor);
-				s = (y1 - y2) * sDivisor;
+				s = sDividend * sDivisor;
 			}
 			else
 			{
@@ -254,8 +265,10 @@ input.eqn {
 		//s *= Math.sign(x1- x2);
 		s = mod(s, Z);
 		var X = Math.pow(s, 2) - x2 - x1;
+		console.log(s + "^2 - " + x2 + " - " + x1);
 		X = mod(X, Z);
 		var Y = s*(x1-X) - y1;
+		console.log(s + " * (" + x1 + "-" + X + ") - " + y1);
 		Y = mod(Y, Z);
 		return [X, Y];
 	}
