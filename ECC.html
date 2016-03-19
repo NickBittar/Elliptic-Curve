@@ -113,6 +113,19 @@ input.eqn {
 
 		document.write(table);
 	}
+	function gcd(a, b)
+	{
+		var r1 = a, r2 = b;
+		var q = 0, r = 0;
+		while(r2 > 0)
+		{
+			q = Math.floor(r1/r2);
+			r = r1 - q*r2;
+			r1 = r2;
+			r2 = r;
+		}
+		return r1;
+	}
 	function findInverse(n)
 	{
 		Z = 26;
