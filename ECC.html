@@ -1,9 +1,11 @@
 <html>
+<head>
 <style>
 input.eqn {
 	width: 20px;
 }
 </style>
+</head>
 <body>
 <h2>Find Points on Elliptic Curve</h2>
 <div id="equation">
@@ -17,16 +19,19 @@ input.eqn {
 	var S;	// slope
 
 	// y^2 = X^3 + 5x + 4	in Z11
-	a = 5;
-	b = 4;
-	Z = 11;
+	//a = 5;
+	//b = 4;
+	//Z = 11;
+
 	//ECC();
 	
 	function ECC()
 	{
+		
 		a = parseInt(document.getElementById("a").value);
 		b = parseInt(document.getElementById("b").value);
 		Z = parseInt(document.getElementById("z").value);
+		
 		if(4*Math.pow(a, 3) + 27*Math.pow(b,2) == 0)
 		{
 			console.log("a and b are not valid!");
@@ -34,20 +39,32 @@ input.eqn {
 		}
 		// Finding points on the curve
 		var pts = generatePtsOnCurve();
+
+		//Reorder pts for debugging
+		pts = [ [0, 2], [0, 9], [2, 0], [4, 0], [5, 0], [10, 3], [10, 8] ];
+
 		//Find two points by setting X values
 		Xp = pts[0][0];
-		Yp = calcYECC(Xp);
+		//Yp = calcYECC(Xp);
+		Yp = pts[0][1];
+
 		Xq = pts[1][0];
-		Yq = calcYECC(Xq);
+		//Yq = calcYECC(Xq);
+		Yq = pts[1][1];
+
+		//console.log("X: " + Xp + ", " + Yp);
+		//console.log("Y: " + Xq + ", " + Yq);
 		
 		//Find point R
 		var R = add2DiffPts(Xp, Yp, Xq, Yq);
 		Xr = R[0];
 		Yr = -R[1];
 		
-		console.log(Xr + " " + Yr);
+		//console.log(Xr + " " + Yr);
 		
 		calcPtAdditionTable(pts);
+
+		add2SamePts(0, 9);
 		
 	}
 	function generatePtsOnCurve()
@@ -58,13 +75,13 @@ input.eqn {
 		for(var i = 0; i < Z; i++)
 		{
 			possibleY[i] = (Math.pow(i, 2)%Z);
-			console.log("when Y=" + i + " ==> " + possibleY[i] );
+			//console.log("when Y=" + i + " ==> " + possibleY[i] );
 		}
 		
 		for(var i = 0; i < Z; i++)
 		{
 			possibleX[i] = ((Math.pow(i, 3)+ a*i + b)%Z);
-			console.log("when X=" + i + " ==> " + possibleX[i] );
+			//console.log("when X=" + i + " ==> " + possibleX[i] );
 		}
 		
 		for(var y = 0; y < Z; y++)
@@ -83,39 +100,53 @@ input.eqn {
 	function calcPtAdditionTable(pts)
 	{
 		var table = "";
-		table += "<table border='1'>";
+		table += "<table>";
 		table += "<tr>";
 		table += "<td>X</td>";
 		for(var i = 0; i < pts.length; i++)
 		{
-			table += "<td>" + pts[i] + "</td>";
+			table += "<td>(" + pts[i] + ")</td>";
 		}
+		table += "<td>Infinity</td>";
 		table += "</tr>";
 		for(var i = 0; i < pts.length; i++)
 		{
 			table += "<tr>";
-			table += "<td>" + pts[i] + "</td>";
+			table += "<td>(" + pts[i] + ")</td>";
 			for(var j = 0; j < pts.length; j++)
 			{
 				if(i === j)
 				{
-					table += "<td>" + add2SamePts(pts[j][0], pts[j][1]) + "</td>";
+					table += "<td>(" + add2SamePts(pts[j][0], pts[j][1]) + ")</td>";
 				}
 				else
 				{
-					table += "<td>" + add2DiffPts(pts[i][0], pts[i][1], pts[j][0], pts[j][1]) + "</td>";
+					table += "<td>(" + add2DiffPts(pts[i][0], pts[i][1], pts[j][0], pts[j][1]) + ")</td>";
 				}
 
 			}
+			table += "<td>(" + pts[i][0] + ", " + pts[i][1] + ")</td>"; 
 			table += "</tr>";
 		}
+		table += "<tr><td>Infinity</td>";
+		for(var j = 0; j < pts.length; j++)
+		{
+			table += "<td>(" + pts[j][0] + ", " + pts[j][1] + ")</td>";
+		}
+		table += "<td>Infinty</td>";
+		table += "</tr>";
 		table += "</table>";
 
 		document.write(table);
 	}
 	function gcd(a, b)
 	{
-		var r1 = a, r2 = b;
+		if(a === b)
+		{
+			return a;
+		}
+
+		var r1 = Math.max(a, b), r2 = Math.min(a, b);
 		var q = 0, r = 0;
 		while(r2 > 0)
 		{
@@ -126,9 +157,18 @@ input.eqn {
 		}
 		return r1;
 	}
+	//Mods n by p and handles if n is negative
+	function mod(n, p)
+	{
+		n %= p;
+		if(n < 0)
+		{
+			n += p;
+		}
+		return n;
+	}
 	function findInverse(n)
 	{
-		Z = 26;
 		// in respect to specified Z
 		var q, r1, r2, r, t1, t2, t, i;
 		// Init
@@ -143,7 +183,7 @@ input.eqn {
 			r = r1 - (q*r2);
 			t = t1 - q*t2;
 
-console.log(q + " " + r1 + " " + r2 + " " + r + " " + t1 + " " + t2 + " " + t );
+			//console.log(q + " " + r1 + " " + r2 + " " + r + " " + t1 + " " + t2 + " " + t );
 
 			r1 = r2;
 			r2 = r;
@@ -152,13 +192,12 @@ console.log(q + " " + r1 + " " + r2 + " " + r + " " + t1 + " " + t2 + " " + t );
 		}
 
 		i = t1;
-		if(i < 0)
-		{
-			i %= Z;
-			i += Z;
-		}
+
+		i = mod(i, Z);
 		
-		console.log(i);
+		//console.log(i);
+
+		return i;
 		
 	}
 	function calcYECC(x)
@@ -175,17 +214,50 @@ console.log(q + " " + r1 + " " + r2 + " " + r + " " + t1 + " " + t2 + " " + t );
 	}
 	function add2SamePts(x, y)
 	{
-		var s = 3*Math.pow(x, 2) + a / (2*y);
+		var sDivisor = (2*y);
+		var s = (3*Math.pow(x, 2) + a) / sDivisor;
+		if(s !== ~~s)
+		{
+			if(gcd(Z, sDivisor) === 1)
+			{
+				sDivisor = findInverse(sDivisor);
+				s = (3*Math.pow(x, 2) + a) * sDivisor;
+			}
+			else
+			{
+				return Infinity;
+			}
+		}
+		//s *= Math.sign(y);
+		s = mod(s, Z);
+
 		var X = Math.pow(s, 2) - 2*x;
 		var Y = s * (x - X) - y;
-		return [X, Y];
+		return [mod(X, Z), mod(Y, Z)];
 	}
 	function add2DiffPts(x1, y1, x2, y2)
 	{
-		var s = (y1 - y2) / (x1 - x2);
-		var X = Math.pow(s, 2) - x1 - x2;
-		var Y = s*(x1-x2) - y1;
-		return [X%Z, Y%Z];
+		var sDivisor = (x1 - x2);
+		var s = (y1 - y2) / sDivisor;
+		if(s !== ~~s)
+		{
+			if(gcd(Z, mod(sDivisor, Z)) === 1)	// If the divisor has an inverse in Z
+			{
+				sDivisor = findInverse(sDivisor);
+				s = (y1 - y2) * sDivisor;
+			}
+			else
+			{
+				return Infinity;
+			}
+		}
+		//s *= Math.sign(x1- x2);
+		s = mod(s, Z);
+		var X = Math.pow(s, 2) - x2 - x1;
+		X = mod(X, Z);
+		var Y = s*(x1-X) - y1;
+		Y = mod(Y, Z);
+		return [X, Y];
 	}
 </script>
 </html>
