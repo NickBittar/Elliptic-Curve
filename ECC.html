@@ -1,16 +1,33 @@
 <html>
 <head>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 <style>
-input.eqn {
-	width: 20px;
+input {
+	width: 80px;
+}
+div#equation {
+	font-size: 32px;
+}
+span.math {
+	font-family: MathJax_Main;
 }
 </style>
 </head>
 <body>
-<h2>Find Points on Elliptic Curve</h2>
+<h1>Find Points on the Elliptic Curve</h1>
+a = <input id="a" onkeyup="updateEquation('a')"><br>
+b = <input id="b" onkeyup="updateEquation('b')"><br>
+z = <input id="z" onkeyup="updateEquation('z')"><br>
+<br>
 <div id="equation">
-	y^2 = x^3 + <input class="eqn" id="a">x + <input class="eqn" id="b"> in Z<input class="eqn" id="z">
+	\(y^2 = x^3 + \) <span id="a-eqn" class="math">a</span>\(x + \)<span id="b-eqn" class="math">b</span> in \(Z\)<span id="z-eqn" class="math">z</span>
 </div>
+<br>
 <button onclick="ECC()">Do it</button>
 </body>
 <script>
@@ -238,6 +255,12 @@ input.eqn {
 		Y = mod(Y, Z);
 
 		return [X, Y];
+	}
+
+
+	function updateEquation(num)
+	{
+		document.getElementById(num + "-eqn").innerText =  document.getElementById(num).value;
 	}
 </script>
 </html>
