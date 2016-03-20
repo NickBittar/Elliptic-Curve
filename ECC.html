@@ -32,7 +32,7 @@ input.eqn {
 		b = parseInt(document.getElementById("b").value);
 		Z = parseInt(document.getElementById("z").value);
 		
-		if(4*Math.pow(a, 3) + 27*Math.pow(b,2) == 0)
+		if(mod(4*Math.pow(a, 3) + 27*Math.pow(b,2), Z) == 0)
 		{
 			console.log("a and b are not valid!");
 			return;
@@ -40,31 +40,24 @@ input.eqn {
 		// Finding points on the curve
 		var pts = generatePtsOnCurve();
 
-		//Reorder pts for debugging
-		pts = [ [0, 2], [0, 9], [2, 0], [4, 0], [5, 0], [10, 3], [10, 8] ];
-
-		//Find two points by setting X values
+		//Choose two points on the curve
 		Xp = pts[0][0];
-		//Yp = calcYECC(Xp);
 		Yp = pts[0][1];
 
-		Xq = pts[1][0];
-		//Yq = calcYECC(Xq);
-		Yq = pts[1][1];
+		Xq = pts[2][0];
+		Yq = pts[2][1];
 
 		//console.log("X: " + Xp + ", " + Yp);
 		//console.log("Y: " + Xq + ", " + Yq);
 		
 		//Find point R
-		var R = add2DiffPts(Xp, Yp, Xq, Yq);
+		var R = addPts(Xp, Yp, Xq, Yq);
 		Xr = R[0];
 		Yr = -R[1];
 		
-		//console.log(Xr + " " + Yr);
+		console.log(Xr + " " + Yr);
 		
 		calcPtAdditionTable(pts);
-
-		add2SamePts(0, 9);
 		
 	}
 	function generatePtsOnCurve()
@@ -84,11 +77,11 @@ input.eqn {
 			//console.log("when X=" + i + " ==> " + possibleX[i] );
 		}
 		
-		for(var y = 0; y < Z; y++)
+		for(var x = 0; x < Z; x++)
 		{
-			for(var x = 0; x < Z; x++)
+			for(var y = 0; y < Z; y++)
 			{
-				if(possibleY[y] == possibleX[x])
+				if(possibleX[x] == possibleY[y])
 				{
 					document.write("Point (" + x + ", " + y + ")<br>");
 					pts[pts.length] = [x, y];
@@ -97,7 +90,7 @@ input.eqn {
 		}
 		return pts;
 	}
-	function calcPtAdditionTable(pts)
+	function calcPtAdditionTable(pts)	// This func is a mess, such is the nature for marking up the results.
 	{
 		var table = "";
 		table += "<table border='1'>";
@@ -116,15 +109,8 @@ input.eqn {
 			for(var j = 0; j < pts.length; j++)
 			{
 				var result;
-				if(i === j)
-				{
-					result = add2SamePts(pts[j][0], pts[j][1]);
-				}
-				else
-				{
-					result = add2DiffPts(pts[i][0], pts[i][1], pts[j][0], pts[j][1]);
-				}
-				if(result != Infinity)
+				result = addPts(pts[i][0], pts[i][1], pts[j][0], pts[j][1]);
+				if(result != Infinity)	// To avoid printing "(Infinity, Undefined)" and instead neatly: "Infinity"
 				{
 					result = "(" + result[0] + ", " + result[1] + ")";
 				}
@@ -182,9 +168,9 @@ input.eqn {
 		r2 = n;
 		t1 = 0;
 		t2 = 1;
+
 		while(r2 !== 0)
 		{
-
 			q = ~~(r1/r2);
 			r = r1 - (q*r2);
 			t = t1 - q*t2;
@@ -200,8 +186,6 @@ input.eqn {
 		i = t1;
 
 		i = mod(i, Z);
-		
-		//console.log(i);
 
 		return i;
 		
@@ -218,58 +202,41 @@ input.eqn {
 		var Y = S*x + S*Xp + Yp;
 		return Y;
 	}
-	function add2SamePts(x, y)
+	function addPts(x1, y1, x2, y2)	//P=(x1, y1), Q=(x2, y2)
 	{
-		var sDivisor = (2*y);
-		var s = (3*Math.pow(x, 2) + a) / sDivisor;
-		if(s !== ~~s)
-		{
-			if(gcd(Z, sDivisor) === 1)
-			{
-				sDivisor = findInverse(sDivisor);
-				s = (3*Math.pow(x, 2) + a) * sDivisor;
-			}
-			else
-			{
-				return Infinity;
-			}
-		}
-		//s *= Math.sign(y);
-		s = mod(s, Z);
+		var s, sDividend, sDivisor, X, Y;
 
-		var X = Math.pow(s, 2) - 2*x;
-		var Y = s * (x - X) - y;
-		return [mod(X, Z), mod(Y, Z)];
-	}
-	function add2DiffPts(x1, y1, x2, y2)
-	{
-		var sDivisor = (x2 - x1);
-		var sDividend = (y2 - y1);
-		if(sDividend < 0)
+		if(x1 === x2 && y1 === y2)	// P = Q
 		{
-			sDividend = mod(sDividend, Z);
+			sDividend = 3 * Math.pow(x1,2) + a;
+			sDivisor = 2 * y1;
 		}
-		var s = sDividend / sDivisor;
-		if(s !== ~~s)
+		else						// P != Q
 		{
-			if(gcd(Z, mod(sDivisor, Z)) === 1)	// If the divisor has an inverse in Z
-			{
-				sDivisor = findInverse(sDivisor);
-				s = sDividend * sDivisor;
-			}
-			else
-			{
-				return Infinity;
-			}
+			sDividend = y2 - y1;
+			sDivisor = x2 - x1;
 		}
-		//s *= Math.sign(x1- x2);
-		s = mod(s, Z);
-		var X = Math.pow(s, 2) - x2 - x1;
-		console.log(s + "^2 - " + x2 + " - " + x1);
+
+		sDividend = mod(sDividend, Z);
+		sDivisor = mod(sDivisor, Z);
+
+		if(gcd(Z, sDivisor) === 1)	// If the divisor has an inverse in Z
+		{
+			sDivisor = findInverse(sDivisor);
+		}
+		else
+		{
+			return Infinity;
+		}
+
+		s = sDividend * sDivisor;
+
+		X = Math.pow(s,2) - x1 - x2;
+		Y = -(y1 + s*(X - x1));
+
 		X = mod(X, Z);
-		var Y = s*(x1-X) - y1;
-		console.log(s + " * (" + x1 + "-" + X + ") - " + y1);
 		Y = mod(Y, Z);
+
 		return [X, Y];
 	}
 </script>
