@@ -23,7 +23,7 @@ div.input-page {
 }
 div#pts-table {
 	overflow: auto;
-	height: 50%;
+	height: 60vh;
 }
 table {
   margin: auto;
@@ -53,6 +53,7 @@ div.output-page {
 			b = <input id="b" onkeyup="updateEquation('b')">
 			z = <input id="z" onkeyup="updateEquation('z')">
 		</div>
+    <p>*Note:  Z must be a prime number and 4a³ cannot equal 27b² in specified Z.</p>
 		<br>
 		<br>
 		<div id="equation">
@@ -62,7 +63,7 @@ div.output-page {
 		<button onclick="ECC()">Do it</button>
 	</div>
 	<div class="output-page">
-    <h2>Points on the curve:</h2>
+    <h2 id="pts-list-title">The <span id="pt-count"></span> points on the curve:</h2>
 		<span id="points">
     </span>
     <h2>Addition table of points:</h2>
@@ -153,6 +154,7 @@ div.output-page {
 		}
 		ptsStr = ptsStr.substring(0, ptsStr.length-2);
 		document.getElementById("points").innerText = ptsStr;
+    document.getElementById("pt-count").innerText =  pts.length;
 		return pts;
 	}
 	function calcPtAdditionTable(pts)	// This func is a mess, such is the nature for marking up the results.
