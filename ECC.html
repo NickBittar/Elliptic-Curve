@@ -220,12 +220,7 @@ div.output-page {
 	//Mods n by p and handles if n is negative
 	function mod(n, p)
 	{
-		n %= p;
-		if(n < 0)
-		{
-			n += p;
-		}
-		return n;
+		return ( (n%p) + p ) % p;
 	}
 	function findInverse(n)
 	{
